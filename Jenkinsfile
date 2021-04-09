@@ -5,9 +5,9 @@ pipeline {
     stages {
         stage('Build') {
             agent {
-                any {
-                    //This image parameter (of the agent section’s any parameter) downloads the python:2-alpine
-                    //any image and runs this image as a separate container. The Python container becomes
+                docker {
+                    //This image parameter (of the agent section’s docker parameter) downloads the python:2-alpine
+                    //docker image and runs this image as a separate container. The Python container becomes
                     //the agent that Jenkins uses to run the Build stage of your Pipeline project.
                     image 'python:2-alpine'
                 }
@@ -23,8 +23,8 @@ pipeline {
         }
         stage('Test') {
             agent {
-                any {
-                    //This image parameter downloads the qnib:pytest any image and runs this image as a
+                docker {
+                    //This image parameter downloads the qnib:pytest docker image and runs this image as a
                     //separate container. The pytest container becomes the agent that Jenkins uses to run the Test
                     //stage of your Pipeline project.
                     image 'qnib/pytest'
@@ -48,7 +48,7 @@ pipeline {
             }
         }
         stage('Deliver') {
-                    agent any
+                    agent docker
                     //This environment block defines two variables which will be used later in the 'Deliver' stage.
                     environment {
                         VOLUME = '$(pwd)/sources:/src'
@@ -67,7 +67,7 @@ pipeline {
                             //This sh step executes the pyinstaller command (in the PyInstaller container) on your simple Python application.
                             //This bundles your add2vals.py Python application into a single standalone executable file
                             //and outputs this file to the dist workspace directory (within the Jenkins home directory).
-                            sh "any run --rm -v ${VOLUME} ${IMAGE} 'pyinstaller -F add2vals.py'"
+                            sh "docker run --rm -v ${VOLUME} ${IMAGE} 'pyinstaller -F add2vals.py'"
                         }
                     }
                     post {
@@ -75,7 +75,7 @@ pipeline {
                             //This archiveArtifacts step archives the standalone executable file and exposes this file
                             //through the Jenkins interface.
                             archiveArtifacts "${env.BUILD_ID}/sources/dist/add2vals"
-                            sh "any run --rm -v ${VOLUME} ${IMAGE} 'rm -rf build dist'"
+                            sh "docker run --rm -v ${VOLUME} ${IMAGE} 'rm -rf build dist'"
                         }
                     }
         }
